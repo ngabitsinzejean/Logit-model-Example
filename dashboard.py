@@ -35,7 +35,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.title("📊 Microeconometrics Dashboard: Logistic Car Ownership Model")
+st.title("📊 Microeconometrics:Logistic Model")
 st.subheader("An Interactive Evaluation of Binary Choice Frameworks for Grouped Data")
 st.markdown("---")
 
