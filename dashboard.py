@@ -6,7 +6,7 @@ import statsmodels.api as sm
 # Set application layout and page config
 st.set_page_config(page_title="Microeconometrics: Logistic Car Ownership Model", layout="wide")
 
-# FIX: Refined CSS targeting text elements safely without corrupting internal icon strings
+# Refined CSS targeting text elements safely without corrupting internal icon strings
 st.markdown(
     """
     <style>
@@ -56,6 +56,10 @@ X_matrix = sm.add_constant(df['Monthly Wage (X)'])
 model_ols = sm.OLS(df['Empirical Logit (Li)'], X_matrix).fit()
 model_wls = sm.WLS(df['Empirical Logit (Li)'], X_matrix, weights=df['WLS Weights (wi)']).fit()
 
+# Convert statsmodels coefficient tables to clear pandas dataframes for layout styling
+ols_coef_df = pd.read_html(model_ols.summary().tables[1].as_html(), header=0, index_col=0)[0]
+wls_coef_df = pd.read_html(model_wls.summary().tables[1].as_html(), header=0, index_col=0)[0]
+
 # Calculations for text report generation
 avg_wage = df['Monthly Wage (X)'].mean()
 p_logit = model_ols.params['const'] + model_ols.params['Monthly Wage (X)'] * avg_wage
@@ -99,10 +103,10 @@ Econometric Note: Grouped data logit models suffer from inherent heteroscedastic
 COMPLETE COEFFICIENTS AND REGRESSION SUMMARY TABLES
 ======================================================================
 1. OLS MODEL TABLES:
-{str(model_ols.summary().tables)}
+{str(model_ols.summary().tables[1])}
 
 2. WLS MODEL TABLES:
-{str(model_wls.summary().tables)}
+{str(model_wls.summary().tables[1])}
 ======================================================================
 """
 
@@ -122,15 +126,17 @@ st.dataframe(df.style.format(precision=4), width='stretch')
 st.markdown("---")
 
 # Full-width display for regression outputs
-st.header("🧮 Model Estimations (Table of Coefficients)")
+st.header("🧮 Model Estimations (Full Regression Summary)")
 model_type = st.radio("Select Model Specification to View:", ["Ordinary Least Squares (OLS)", "Weighted Least Squares (WLS)"])
 
 if model_type == "Ordinary Least Squares (OLS)":
     st.text("OLS Regression Summary Table:")
-    st.text(str(model_ols.summary().tables))
+    st.text(str(model_ols.summary().tables[0]))
+    st.text(str(model_ols.summary().tables[1]))
 else:
     st.text("WLS Heteroscedasticity Corrected Summary Table:")
-    st.text(str(model_wls.summary().tables))
+    st.text(str(model_wls.summary().tables[0]))
+    st.text(str(model_wls.summary().tables[1]))
 
 st.markdown("---")
 st.header("📝 Microeconometric Interpretations & Analysis Guide")
@@ -140,6 +146,8 @@ with st.expander("(i) Logit Model Estimation & Direction"):
     st.latex(r"L_i = \ln\left(\frac{p_i}{1 - p_i}\right) = \beta_0 + \beta_1 X_i + u_i")
     st.markdown("**Estimated Equation:**")
     st.latex(rf"\hat{{L_i}} = {model_ols.params['const']:.4f} + {model_ols.params['Monthly Wage (X)']:.4f} X")
+    st.markdown("**Table of Coefficients (OLS):**")
+    st.dataframe(ols_coef_df, width='stretch')
     st.write(f"**Interpretation:** There is a **positive relationship** between monthly wage and car ownership. As monthly income increases, the log-odds of a household owning a vehicle increases by {model_ols.params['Monthly Wage (X)']:.4f} units for every additional unit of wage.")
 
 with st.expander("(ii) Odds Ratio Analysis"):
@@ -165,4 +173,6 @@ with st.expander("(v) Heteroscedasticity & Weighted Least Squares"):
     st.latex(r"\text{Var}(u_i) = \frac{1}{N_i p_i (1 - p_i)}")
     st.markdown("**Corrected Estimated WLS Equation:**")
     st.latex(rf"\hat{{L_i}}^* = {model_wls.params['const']:.4f} + {model_wls.params['Monthly Wage (X)']:.4f} X")
+    st.markdown("**Table of Coefficients (Corrected WLS):**")
+    st.dataframe(wls_coef_df, width='stretch')
     st.write("**Econometric Note:** Grouped data logit models suffer from inherent heteroscedasticity because the variance of the error term changes across rows based on sample sizes and true probabilities. Weighting the entire equation by the reciprocal of this variance stabilizes the error variance, satisfying the standard Gauss-Markov assumptions for Blue estimators.")
