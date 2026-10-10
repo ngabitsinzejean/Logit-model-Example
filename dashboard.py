@@ -48,12 +48,12 @@ st.header("📝 Microeconometric Interpretations & Analysis Guide")
 
 with st.expander("(i) Logit Model Estimation & Direction"):
     st.latex(rf"\hat{{L_i}} = {model_ols.params['const']:.4f} + {model_ols.params['Monthly Wage (X)']:.4f} X")
-    st.write(f"**Interpretation:** Positive relationship between monthly wage and car ownership. Log-odds increase by {model_ols.params['Monthly Wage (X)']:.4f} units per unit of wage.")
+    st.write(f"**Interpretation:** There is a **positive relationship** between monthly wage and car ownership. As monthly income increases, the log-odds of a household owning a vehicle increases by {model_ols.params['Monthly Wage (X)']:.4f} units for every additional unit of wage.")
 
 with st.expander("(ii) Odds Ratio Analysis"):
     odds = np.exp(model_ols.params['Monthly Wage (X)'])
     st.metric(label="Calculated Odds Ratio (e^b1)", value=f"{odds:.4f}")
-    st.write(f"**Interpretation:** For every 1-unit increase in monthly wage, the odds of owning a vehicle increase by a factor of **{odds:.4f}**.")
+    st.write(f"**Interpretation:** For every 1-unit increase in monthly wage, the odds of a household owning a vehicle increase by a factor of **{odds:.4f}** (which corresponds to an increase of roughly {((odds - 1) * 100):.2f}%).")
 
 with st.expander("(iii) Predicted Probability at Community Mean"):
     avg_wage = df['Monthly Wage (X)'].mean()
@@ -65,8 +65,8 @@ with st.expander("(iii) Predicted Probability at Community Mean"):
 with st.expander("(iv) Change in Probability (Marginal Effect)"):
     m_effect = model_ols.params['Monthly Wage (X)'] * prob_mean * (1 - prob_mean)
     st.metric(label="Marginal Effect at Mean", value=f"{m_effect:.4f}")
-    st.write(f"**Interpretation:** At the average income level, a 1-unit increase in monthly wage leads to an increase of approximately **{m_effect * 100:.2f} percentage points** in probability.")
+    st.write(f"**Interpretation:** At the average income level, a 1-unit increase in monthly wage leads to an increase of approximately **{m_effect * 100:.2f} percentage points** in the actual probability of vehicle ownership.")
 
 with st.expander("(v) Heteroscedasticity & Weighted Least Squares"):
     st.latex(rf"\hat{{L_i}} = {model_wls.params['const']:.4f} + {model_wls.params['Monthly Wage (X)']:.4f} X")
-    st.write("**Econometric Note:** Grouped data logit models suffer from heteroscedasticity because var(ui) = 1 / [Ni * pi * (1 - pi)]. Weighting by the reciprocal stabilizes the errors.")
+    st.write("**Econometric Note:** Grouped data logit models suffer from inherent heteroscedasticity because the variance of the error term depends on sample sizes and true probabilities: var(ui) = 1 / [Ni * pi * (1 - pi)]. Weighting the entire equation by the reciprocal of this variance stabilizes the error terms, satisfying standard Gauss-Markov assumptions.")
