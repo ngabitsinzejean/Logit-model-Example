@@ -5,10 +5,10 @@ import statsmodels.api as sm
 import matplotlib.pyplot as plt
 
 # Set application layout and page config
-st.set_page_config(page_title="Car Ownership Logit Dashboard", layout="wide")
+st.set_page_config(page_title="Microeconometrics: Logistic Car Ownership Model", layout="wide")
 
 st.title("📊 Microeconometrics Dashboard: Logistic Car Ownership Model")
-st.subheader("UR-College of Business and Economics — CAT Question 1 Evaluation")
+st.subheader("An Interactive Evaluation of Binary Choice Frameworks for Grouped Data")
 st.markdown("---")
 
 # Clean dataset initialization
@@ -28,7 +28,7 @@ X_matrix = sm.add_constant(df['Monthly Wage (X)'])
 model_ols = sm.OLS(df['Empirical Logit (Li)'], X_matrix).fit()
 model_wls = sm.WLS(df['Empirical Logit (Li)'], X_matrix, weights=df['WLS Weights (wi)']).fit()
 
-# Layout splits: FIXED by adding '2' inside columns layout configuration
+# Layout splits
 col1, col2 = st.columns(2)
 
 with col1:
@@ -75,7 +75,7 @@ with col2:
     st.pyplot(fig)
 
 st.markdown("---")
-st.header("📝 Official Academic Interpretations & Grading Guide")
+st.header("📝 Microeconometric Interpretations & Analysis Guide")
 
 with st.expander("(i) Logit Model Estimation & Direction"):
     st.latex(rf"\hat{{L_i}} = {model_ols.params['const']:.4f} + {model_ols.params['Monthly Wage (X)']:.4f} X")
