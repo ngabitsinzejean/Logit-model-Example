@@ -56,9 +56,23 @@ X_matrix = sm.add_constant(df['Monthly Wage (X)'])
 model_ols = sm.OLS(df['Empirical Logit (Li)'], X_matrix).fit()
 model_wls = sm.WLS(df['Empirical Logit (Li)'], X_matrix, weights=df['WLS Weights (wi)']).fit()
 
-# Convert statsmodels coefficient tables to clear pandas dataframes for layout styling
-ols_coef_df = pd.read_html(model_ols.summary().tables[1].as_html(), header=0, index_col=0)[0]
-wls_coef_df = pd.read_html(model_wls.summary().tables[1].as_html(), header=0, index_col=0)[0]
+# FIXED: Extract coefficient metrics manually to create robust dataframes without HTML parsing
+def extract_coefficients_df(model):
+    coef_data = {
+        'Coefficient': model.params,
+        'Std. Error': model.bse,
+        't-Statistic': model.tvalues,
+        'P-Value': model.pvalues
+    }
+    res_df = pd.DataFrame(coef_data)
+    # Add a confidence interval span
+    conf_int = model.conf_int()
+    res_df['[0.025'] = conf_int[0]
+    res_df['0.975]'] = conf_int[1]
+    return res_df
+
+ols_coef_df = extract_coefficients_df(model_ols)
+wls_coef_df = extract_coefficients_df(model_wls)
 
 # Calculations for text report generation
 avg_wage = df['Monthly Wage (X)'].mean()
@@ -103,10 +117,10 @@ Econometric Note: Grouped data logit models suffer from inherent heteroscedastic
 COMPLETE COEFFICIENTS AND REGRESSION SUMMARY TABLES
 ======================================================================
 1. OLS MODEL TABLES:
-{str(model_ols.summary().tables[1])}
+{str(model_ols.summary().tables)}
 
 2. WLS MODEL TABLES:
-{str(model_wls.summary().tables[1])}
+{str(model_wls.summary().tables)}
 ======================================================================
 """
 
@@ -147,7 +161,7 @@ with st.expander("(i) Logit Model Estimation & Direction"):
     st.markdown("**Estimated Equation:**")
     st.latex(rf"\hat{{L_i}} = {model_ols.params['const']:.4f} + {model_ols.params['Monthly Wage (X)']:.4f} X")
     st.markdown("**Table of Coefficients (OLS):**")
-    st.dataframe(ols_coef_df, width='stretch')
+    st.dataframe(ols_coef_df.style.format(precision=4), width='stretch')
     st.write(f"**Interpretation:** There is a **positive relationship** between monthly wage and car ownership. As monthly income increases, the log-odds of a household owning a vehicle increases by {model_ols.params['Monthly Wage (X)']:.4f} units for every additional unit of wage.")
 
 with st.expander("(ii) Odds Ratio Analysis"):
@@ -174,5 +188,4 @@ with st.expander("(v) Heteroscedasticity & Weighted Least Squares"):
     st.markdown("**Corrected Estimated WLS Equation:**")
     st.latex(rf"\hat{{L_i}}^* = {model_wls.params['const']:.4f} + {model_wls.params['Monthly Wage (X)']:.4f} X")
     st.markdown("**Table of Coefficients (Corrected WLS):**")
-    st.dataframe(wls_coef_df, width='stretch')
-    st.write("**Econometric Note:** Grouped data logit models suffer from inherent heteroscedasticity because the variance of the error term changes across rows based on sample sizes and true probabilities. Weighting the entire equation by the reciprocal of this variance stabilizes the error variance, satisfying the standard Gauss-Markov assumptions for Blue estimators.")
+    st.dataframe(wls_coef_df.style.format(precision=4), width='stretch')
