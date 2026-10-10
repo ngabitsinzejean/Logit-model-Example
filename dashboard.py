@@ -6,21 +6,30 @@ import statsmodels.api as sm
 # Set application layout and page config
 st.set_page_config(page_title="Microeconometrics: Logistic Car Ownership Model", layout="wide")
 
-# Inject Custom CSS to enforce Times New Roman 12pt globally across the application
+# FIX: Refined CSS targeting text elements safely without corrupting internal icon strings
 st.markdown(
     """
     <style>
-    html, body, [class*="css"], div, p, span, label, button, input, select, textarea {
+    /* target main text blocks, headers, expander text, and dataframes */
+    html, body, p, span, label, stDataFrame, .stMarkdown, .stExpander p, .stRadio label {
         font-family: 'Times New Roman', Times, serif !important;
-        font-size: 16px !important; /* 16px is equivalent to 12pt font size */
+        font-size: 16px !important; /* 16px equals 12pt font size */
     }
+    /* target headers specifically while maintaining font consistency */
+    h1 { font-family: 'Times New Roman', serif !important; font-size: 24px !important; font-weight: bold !important; }
+    h2 { font-family: 'Times New Roman', serif !important; font-size: 20px !important; font-weight: bold !important; }
+    h3 { font-family: 'Times New Roman', serif !important; font-size: 18px !important; font-weight: bold !important; }
+    
+    /* target dataframes specifically to ensure table headers use the correct font */
+    .stDataFrame div {
+        font-family: 'Times New Roman', Times, serif !important;
+    }
+    
+    /* Keep system code blocks clean and readable */
     pre, code {
         font-family: monospace !important;
         font-size: 14px !important;
     }
-    h1 { font-size: 24px !important; font-weight: bold !important; }
-    h2 { font-size: 20px !important; font-weight: bold !important; }
-    h3 { font-size: 18px !important; font-weight: bold !important; }
     </style>
     """,
     unsafe_allow_html=True
@@ -54,7 +63,7 @@ prob_mean = 1 / (1 + np.exp(-p_logit))
 odds = np.exp(model_ols.params['Monthly Wage (X)'])
 m_effect = model_ols.params['Monthly Wage (X)'] * prob_mean * (1 - prob_mean)
 
-# 💾 PREPARE FULL PAPER TEXT FOR DOWNLOAD FILE
+# Prepare full paper text for download file
 paper_content = f"""MICROECONOMETRICS RESEARCH PAPER: LOGISTIC VEHICLE OWNERSHIP MODEL
 ======================================================================
 Font Specification: Times New Roman 12pt
@@ -90,14 +99,14 @@ Econometric Note: Grouped data logit models suffer from inherent heteroscedastic
 COMPLETE COEFFICIENTS AND REGRESSION SUMMARY TABLES
 ======================================================================
 1. OLS MODEL TABLES:
-{str(model_ols.summary().tables[1])}
+{str(model_ols.summary().tables)}
 
 2. WLS MODEL TABLES:
-{str(model_wls.summary().tables[1])}
+{str(model_wls.summary().tables)}
 ======================================================================
 """
 
-# ADD DOWNLOAD BUTTON RIGHT AT THE TOP
+# Download button component
 st.header("📥 Download Complete Research Paper")
 st.download_button(
     label="Click Here to Download Full Paper (.txt)",
