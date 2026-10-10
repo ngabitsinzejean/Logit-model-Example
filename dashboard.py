@@ -2,7 +2,6 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
-import matplotlib.pyplot as plt
 
 # Set application layout and page config
 st.set_page_config(page_title="Microeconometrics: Logistic Car Ownership Model", layout="wide")
@@ -28,51 +27,21 @@ X_matrix = sm.add_constant(df['Monthly Wage (X)'])
 model_ols = sm.OLS(df['Empirical Logit (Li)'], X_matrix).fit()
 model_wls = sm.WLS(df['Empirical Logit (Li)'], X_matrix, weights=df['WLS Weights (wi)']).fit()
 
-# Layout splits
-col1, col2 = st.columns(2)
+# Full-width display for transformed data table
+st.header("📋 Table 1.1: Transformed Grouped Data")
+st.dataframe(df.style.format(precision=4), width='stretch')
+st.markdown("---")
 
-with col1:
-    st.header("📋 Table 1.1: Transformed Grouped Data")
-    st.dataframe(df.style.format(precision=4), width='stretch')
-    
-    st.header("🧮 Model Estimations (Table of Coefficients)")
-    model_type = st.radio("Select Model Specification to View:", ["Ordinary Least Squares (OLS)", "Weighted Least Squares (WLS)"])
-    
-    if model_type == "Ordinary Least Squares (OLS)":
-        st.text("OLS Regression Summary Table:")
-        st.text(str(model_ols.summary().tables))
-    else:
-        st.text("WLS Heteroscedasticity Corrected Summary Table:")
-        st.text(str(model_wls.summary().tables))
+# Full-width display for regression outputs
+st.header("🧮 Model Estimations (Table of Coefficients)")
+model_type = st.radio("Select Model Specification to View:", ["Ordinary Least Squares (OLS)", "Weighted Least Squares (WLS)"])
 
-with col2:
-    st.header("📈 Interactive Data Visualizations")
-    viz_choice = st.selectbox("Choose Chart Type:", ["Log-Odds Linear Trajectory", "S-Curve Probability Fit"])
-    
-    fig, ax = plt.subplots(figsize=(8, 4.5))
-    
-    if viz_choice == "Log-Odds Linear Trajectory":
-        ax.scatter(df['Monthly Wage (X)'], df['Empirical Logit (Li)'], color='darkred', label='Observed Logits', zorder=3)
-        wage_domain = np.linspace(5, 45, 100)
-        ols_lines = model_ols.params['const'] + model_ols.params['Monthly Wage (X)'] * wage_domain
-        wls_lines = model_wls.params['const'] + model_wls.params['Monthly Wage (X)'] * wage_domain
-        ax.plot(wage_domain, ols_lines, color='blue', linestyle='--', label='OLS Estimate')
-        ax.plot(wage_domain, wls_lines, color='green', label='WLS Estimate (Corrected)')
-        ax.set_ylabel("Empirical Logit (Log-Odds)")
-        ax.set_title("Linear Fit of Log-Odds vs Monthly Wage")
-    else:
-        ax.scatter(df['Monthly Wage (X)'], df['Empirical Prob (pi)'], color='indigo', label='Observed Probabilities', zorder=3)
-        wage_domain = np.linspace(5, 45, 100)
-        logit_pred = model_ols.params['const'] + model_ols.params['Monthly Wage (X)'] * wage_domain
-        prob_pred = 1 / (1 + np.exp(-logit_pred))
-        ax.plot(wage_domain, prob_pred, color='darkorange', linewidth=2, label='Fitted Logit S-Curve')
-        ax.set_ylabel("Probability of Owning a Vehicle (pi)")
-        ax.set_title("Fitted Logit Probability S-Curve Graph")
-        
-    ax.set_xlabel("Monthly Wage (X)")
-    ax.grid(True, linestyle=':', alpha=0.6)
-    ax.legend()
-    st.pyplot(fig)
+if model_type == "Ordinary Least Squares (OLS)":
+    st.text("OLS Regression Summary Table:")
+    st.text(str(model_ols.summary().tables))
+else:
+    st.text("WLS Heteroscedasticity Corrected Summary Table:")
+    st.text(str(model_wls.summary().tables))
 
 st.markdown("---")
 st.header("📝 Microeconometric Interpretations & Analysis Guide")
