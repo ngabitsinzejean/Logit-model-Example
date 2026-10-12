@@ -15,7 +15,7 @@ st.markdown(
         font-family: 'Times New Roman', Times, serif !important;
         font-size: 18.5px !important; /* 18.5px is equivalent to 14pt font size */
     }
-    
+   
     /* Responsive adjustment for headers using Times New Roman style */
     .stMarkdown h1, h1 { font-family: 'Times New Roman', serif !important; font-size: 26px !important; font-weight: bold !important; }
     .stMarkdown h2, h2 { font-family: 'Times New Roman', serif !important; font-size: 22px !important; font-weight: bold !important; }
